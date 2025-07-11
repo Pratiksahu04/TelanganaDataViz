@@ -338,7 +338,7 @@ def main():
                             st.markdown(f"""
                             <div class="metric-card">
                                 <h4 style="margin: 0; font-size: 14px; color: #888;">{col}</h4>
-                                <h2 style="margin: 0; font-size: 24px;">{value:,.2f if isinstance(value, float) else value:,}</h2>
+                                <h2 style="margin: 0; font-size: 24px;">{f'{value:,.2f}' if isinstance(value, float) else str(value)}</h2>
                             </div>
                             """, unsafe_allow_html=True)
                     
