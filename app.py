@@ -334,11 +334,22 @@ def main():
                     for i, col in enumerate(numeric_columns[:4]):
                         with metrics_cols[i]:
                             value = district_info[col]
+                            # Format value safely, handling NaN and None values
+                            if pd.isna(value) or value is None:
+                                formatted_value = "N/A"
+                            elif isinstance(value, (int, float)):
+                                try:
+                                    formatted_value = f'{value:,.2f}' if isinstance(value, float) else f'{value:,}'
+                                except (ValueError, TypeError):
+                                    formatted_value = str(value)
+                            else:
+                                formatted_value = str(value)
+                            
                             # Use themed metric cards
                             st.markdown(f"""
                             <div class="metric-card">
                                 <h4 style="margin: 0; font-size: 14px; color: #888;">{col}</h4>
-                                <h2 style="margin: 0; font-size: 24px;">{f'{value:,.2f}' if isinstance(value, float) else str(value)}</h2>
+                                <h2 style="margin: 0; font-size: 24px;">{formatted_value}</h2>
                             </div>
                             """, unsafe_allow_html=True)
                     
