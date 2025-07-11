@@ -334,22 +334,32 @@ def main():
                     for i, col in enumerate(numeric_columns[:4]):
                         with metrics_cols[i]:
                             value = district_info[col]
-                            # Format value safely, handling NaN and None values
-                            if pd.isna(value) or value is None:
-                                formatted_value = "N/A"
-                            elif isinstance(value, (int, float)):
-                                try:
-                                    formatted_value = f'{value:,.2f}' if isinstance(value, float) else f'{value:,}'
-                                except (ValueError, TypeError):
-                                    formatted_value = str(value)
-                            else:
-                                formatted_value = str(value)
                             
-                            # Use themed metric cards
+                            display_value = "" # Initialize a variable for the final display value
+                    
+                            if pd.isna(value) or value is None:
+                                display_value = "N/A"
+                            elif isinstance(value, float):
+                                # Try to format floats with 2 decimal places and commas
+                                try:
+                                    display_value = f"{value:,.2f}"
+                                except (ValueError, TypeError):
+                                    display_value = str(value) # Fallback to simple string conversion
+                            elif isinstance(value, int):
+                                # Try to format integers with commas
+                                try:
+                                    display_value = f"{value:,}"
+                                except (ValueError, TypeError):
+                                    display_value = str(value) # Fallback to simple string conversion
+                            else:
+                                # For any other type, just convert to string
+                                display_value = str(value)
+                                
+                            # Use themed metric cards - now inserting 'display_value' directly
                             st.markdown(f"""
                             <div class="metric-card">
                                 <h4 style="margin: 0; font-size: 14px; color: #888;">{col}</h4>
-                                <h2 style="margin: 0; font-size: 24px;">{formatted_value}</h2>
+                                <h2 style="margin: 0; font-size: 24px;">{display_value}</h2>
                             </div>
                             """, unsafe_allow_html=True)
                     
