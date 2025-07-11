@@ -335,18 +335,6 @@ def main():
                         with metrics_cols[i]:
                             value = district_info[col]
                             
-                            # --- NEW DEBUG PRINTS (VERY SIMPLIFIED) ---
-                            st.write("--- DEBUG INFO ---")
-                            st.write(f"Column: {col}")
-                            st.write(f"Raw Value: {value}") # This should still print correctly
-                            st.write(f"Type of Raw Value: {type(value)}")
-                            st.write(f"Is NaN: {pd.isna(value)}")
-                            st.write(f"Is None: {value is None}")
-                            st.write(f"Is Float: {isinstance(value, float)}")
-                            st.write(f"Is Int: {isinstance(value, int)}")
-                            st.write("--- END DEBUG INFO ---")
-                    
-                    
                             display_value = "" # Initialize a variable for the final display value
                     
                             # First, ensure 'value' is a scalar if it's accidentally a Series/array
@@ -358,28 +346,23 @@ def main():
                             elif isinstance(value, float):
                                 try:
                                     display_value = f"{value:,.2f}"
-                                except (ValueError, TypeError) as e:
-                                    st.error(f"DEBUG: Formatting float failed for {value}: {e}")
+                                except (ValueError, TypeError):
+                                    # If formatting fails, fallback to simple string conversion.
+                                    # In production, you might want to log this error internally instead of displaying.
                                     display_value = str(value)
                             elif isinstance(value, int):
                                 try:
                                     display_value = f"{value:,}"
-                                except (ValueError, TypeError) as e:
-                                    st.error(f"DEBUG: Formatting int failed for {value}: {e}")
+                                except (ValueError, TypeError):
+                                    # If formatting fails, fallback to simple string conversion.
                                     display_value = str(value)
                             else:
                                 display_value = str(value)
                                 
-                            # --- DEBUG FINAL DISPLAY VALUE ---
-                            st.write(f"Final display_value (Type: {type(display_value)}): '{display_value}'")
-                            st.write("--- DEBUG FINAL DISPLAY VALUE END ---")
-                    
-                            # NEW ROBUST HTML GENERATION FOR THE VALUE
                             # Construct the inner <h2> tag separately
                             value_html = f'<h2 style="margin: 0; font-size: 24px;">{display_value}</h2>'
                             
-                            # Use themed metric cards - now inserting 'value_html' directly
-                            # This will prevent any re-interpretation of display_value as an f-string
+                            # Use themed metric cards
                             st.markdown(f"""
                             <div class="metric-card">
                                 <h4 style="margin: 0; font-size: 14px; color: #888;">{col}</h4>
