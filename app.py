@@ -337,7 +337,8 @@ def main():
                     
                             # --- START DEBUG PRINTS ---
                             st.write(f"DEBUG: Processing column '{col}'")
-                            st.write(f"DEBUG: Original value type: {type(value)}, value: {value}")
+                            # Corrected: Just output the value and its type directly. No complex format specifier for 'value'.
+                            st.write(f"DEBUG: Original value type: {type(value)}, value: {str(value)}") 
                             st.write(f"DEBUG: pd.isna(value): {pd.isna(value)}")
                             st.write(f"DEBUG: value is None: {value is None}")
                             st.write(f"DEBUG: isinstance(value, float): {isinstance(value, float)}")
