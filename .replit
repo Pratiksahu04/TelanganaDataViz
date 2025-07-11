@@ -9,7 +9,7 @@ deploymentTarget = "autoscale"
 run = ["streamlit", "run", "app.py", "--server.port", "5000"]
 
 [workflows]
-runButton = "Run Streamlit App"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -40,15 +40,6 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "uv add folium streamlit-folium plotly fuzzywuzzy shapely"
-
-[[workflows.workflow]]
-name = "Run Streamlit App"
-author = 44882794
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "streamlit run app.py --server.port 8501 --server.address 0.0.0.0"
 
 [[ports]]
 localPort = 5000

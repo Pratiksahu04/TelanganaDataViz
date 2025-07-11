@@ -9,7 +9,6 @@ import numpy as np
 from utils.data_processor import DataProcessor
 from utils.map_utils import MapUtils
 from utils.chart_utils import ChartUtils
-from utils.auth import ReplitAuth
 
 # Page configuration
 st.set_page_config(
@@ -34,8 +33,6 @@ if 'distance_to' not in st.session_state:
     st.session_state.distance_to = None
 if 'dark_mode' not in st.session_state:
     st.session_state.dark_mode = False
-if 'auth_user' not in st.session_state:
-    st.session_state.auth_user = None
 
 # Load GeoJSON data
 @st.cache_data
@@ -109,15 +106,11 @@ def apply_theme():
         """, unsafe_allow_html=True)
 
 def main():
-    # Initialize authentication
-    auth = ReplitAuth()
-    user = auth.create_user_session()
-    
     # Apply theme styling
     apply_theme()
     
-    # Create header with logo and user info
-    col1, col2, col3 = st.columns([1, 5, 1])
+    # Create header with logo
+    col1, col2 = st.columns([1, 6])
     
     with col1:
         try:
@@ -133,25 +126,6 @@ def main():
         st.markdown("# Telangana District Analysis Dashboard")
         st.markdown("**Interactive visualization and analysis of district-wise data in Telangana**")
         st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col3:
-        # User authentication status
-        if user['is_authenticated']:
-            st.markdown(f"""
-            <div style="text-align: right; padding: 10px;">
-                <div style="background-color: #28a745; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">
-                    👤 {user['username']}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div style="text-align: right; padding: 10px;">
-                <div style="background-color: #6c757d; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">
-                    👤 Guest
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
     
     # Add a separator line
     st.markdown("---")
@@ -186,52 +160,14 @@ def main():
                 st.rerun()
         
         st.markdown("---")
-        
-        # User info section
-        st.markdown("### 👤 User Info")
-        if user['is_authenticated']:
-            st.success(f"Logged in as: **{user['username']}**")
-        else:
-            st.info("**Guest User** - Limited features available")
-            with st.expander("🔒 Get Full Access"):
-                st.markdown("""
-                **To unlock all features:**
-                1. Sign up for a Replit account
-                2. Fork this Repl to your account
-                3. Run it from your Replit workspace
-                
-                **Benefits of authentication:**
-                - Save your analysis sessions
-                - Access premium features
-                - Personalized experience
-                """)
-        
-        st.markdown("---")
         st.header("📊 Data Controls")
         
-        # File upload (with authentication check)
-        if user['is_authenticated']:
-            uploaded_file = st.file_uploader(
-                "Upload CSV file with district-wise data",
-                type=['csv'],
-                help="CSV should contain a column with district names matching the map districts"
-            )
-        else:
-            st.warning("🔒 File upload requires authentication")
-            uploaded_file = None
-            with st.expander("Try Sample Data"):
-                if st.button("Load Sample Dataset"):
-                    # Create sample data for demo
-                    sample_data = pd.DataFrame({
-                        'District': ['Hyderabad', 'Warangal', 'Karimnagar', 'Nizamabad', 'Khammam'],
-                        'Population': [10000000, 3500000, 2800000, 2400000, 2100000],
-                        'Literacy Rate': [85.5, 72.3, 68.9, 65.4, 61.2],
-                        'GDP (Crores)': [120000, 45000, 35000, 28000, 25000]
-                    })
-                    st.session_state.uploaded_data = sample_data
-                    st.success("Sample data loaded! Scroll down to see visualizations.")
-                    st.rerun()
-            uploaded_file = None
+        # File upload
+        uploaded_file = st.file_uploader(
+            "Upload CSV file with district-wise data",
+            type=['csv'],
+            help="CSV should contain a column with district names matching the map districts"
+        )
         
         if uploaded_file is not None:
             # Process uploaded data
@@ -495,47 +431,30 @@ def main():
                 else:
                     st.write("**Missing Data:** None")
             
-            # Export functionality - Premium feature for authenticated users
+            # Export functionality
             st.header("💾 Export Data")
+            col1, col2 = st.columns(2)
             
-            if user['is_authenticated']:
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    if st.button("📥 Download Processed Data as CSV"):
-                        csv = matched_data.to_csv(index=False)
+            with col1:
+                if st.button("📥 Download Processed Data as CSV"):
+                    csv = matched_data.to_csv(index=False)
+                    st.download_button(
+                        label="Download CSV",
+                        data=csv,
+                        file_name="telangana_districts_analysis.csv",
+                        mime="text/csv"
+                    )
+            
+            with col2:
+                if st.button("📊 Download Summary Statistics"):
+                    if numeric_columns:
+                        stats_csv = matched_data[numeric_columns].describe().to_csv()
                         st.download_button(
-                            label="Download CSV",
-                            data=csv,
-                            file_name="telangana_districts_analysis.csv",
+                            label="Download Statistics",
+                            data=stats_csv,
+                            file_name="telangana_districts_statistics.csv",
                             mime="text/csv"
                         )
-                
-                with col2:
-                    if st.button("📊 Download Summary Statistics"):
-                        if numeric_columns:
-                            stats_csv = matched_data[numeric_columns].describe().to_csv()
-                            st.download_button(
-                                label="Download Statistics",
-                                data=stats_csv,
-                                file_name="telangana_districts_statistics.csv",
-                                mime="text/csv"
-                            )
-                
-                # Premium analytics feature
-                st.subheader("🔥 Premium Analytics")
-                if st.button("Generate Advanced Report"):
-                    st.success("Advanced analytics report generated!")
-                    st.markdown("""
-                    **Premium Report Features:**
-                    - Correlation analysis between districts
-                    - Trend forecasting
-                    - Outlier detection
-                    - Custom insights based on your data
-                    """)
-            else:
-                st.warning("🔒 Data export requires authentication")
-                st.info("Sign in to unlock CSV downloads and premium analytics features")
             
             # Show distance map if requested from sidebar
             if st.session_state.show_distance_map and st.session_state.distance_from and st.session_state.distance_to:
