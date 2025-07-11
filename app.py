@@ -43,8 +43,21 @@ def load_geojson():
         return None
 
 def main():
-    st.title("🗺️ Telangana District Analysis Dashboard")
-    st.markdown("Interactive visualization and analysis of district-wise data in Telangana")
+    # Create header with logo
+    col1, col2 = st.columns([1, 6])
+    
+    with col1:
+        try:
+            st.image("assets/telangana_logo.png", width=100)
+        except:
+            st.markdown("🏛️")  # Fallback if logo not found
+    
+    with col2:
+        st.markdown("# Telangana District Analysis Dashboard")
+        st.markdown("**Interactive visualization and analysis of district-wise data in Telangana**")
+    
+    # Add a separator line
+    st.markdown("---")
     
     # Load GeoJSON data
     geojson_data = load_geojson()
