@@ -334,45 +334,56 @@ def main():
                     for i, col in enumerate(numeric_columns[:4]):
                         with metrics_cols[i]:
                             value = district_info[col]
+                            
+                            # --- NEW DEBUG PRINTS (VERY SIMPLIFIED) ---
+                            st.write("--- DEBUG INFO ---")
+                            st.write(f"Column: {col}")
+                            st.write(f"Raw Value: {value}") # This should still print correctly
+                            st.write(f"Type of Raw Value: {type(value)}")
+                            st.write(f"Is NaN: {pd.isna(value)}")
+                            st.write(f"Is None: {value is None}")
+                            st.write(f"Is Float: {isinstance(value, float)}")
+                            st.write(f"Is Int: {isinstance(value, int)}")
+                            st.write("--- END DEBUG INFO ---")
                     
-                            # --- START DEBUG PRINTS ---
-                            st.write(f"DEBUG: Processing column '{col}'")
-                            # Corrected: Just output the value and its type directly. No complex format specifier for 'value'.
-                            st.write(f"DEBUG: Original value type: {type(value)}, value: {str(value)}") 
-                            st.write(f"DEBUG: pd.isna(value): {pd.isna(value)}")
-                            st.write(f"DEBUG: value is None: {value is None}")
-                            st.write(f"DEBUG: isinstance(value, float): {isinstance(value, float)}")
-                            st.write(f"DEBUG: isinstance(value, int): {isinstance(value, int)}")
-                            # --- END DEBUG PRINTS ---
                     
                             display_value = "" # Initialize a variable for the final display value
                     
+                            # First, ensure 'value' is a scalar if it's accidentally a Series/array
+                            if isinstance(value, (pd.Series, np.ndarray)) and len(value) == 1:
+                                value = value.iloc[0] if isinstance(value, pd.Series) else value.item() # Extract scalar
+                    
                             if pd.isna(value) or value is None:
-                                display_value = "N/A" # <-- This is line 341
+                                display_value = "N/A"
                             elif isinstance(value, float):
                                 try:
                                     display_value = f"{value:,.2f}"
                                 except (ValueError, TypeError) as e:
-                                    st.error(f"DEBUG: Formatting float failed for {value}: {e}") # Debugging the exception
+                                    st.error(f"DEBUG: Formatting float failed for {value}: {e}")
                                     display_value = str(value)
                             elif isinstance(value, int):
                                 try:
                                     display_value = f"{value:,}"
                                 except (ValueError, TypeError) as e:
-                                    st.error(f"DEBUG: Formatting int failed for {value}: {e}") # Debugging the exception
+                                    st.error(f"DEBUG: Formatting int failed for {value}: {e}")
                                     display_value = str(value)
                             else:
                                 display_value = str(value)
+                                
+                            # --- DEBUG FINAL DISPLAY VALUE ---
+                            st.write(f"Final display_value (Type: {type(display_value)}): '{display_value}'")
+                            st.write("--- DEBUG FINAL DISPLAY VALUE END ---")
                     
-                            # --- START DEBUG PRINTS ---
-                            st.write(f"DEBUG: Final display_value type: {type(display_value)}, value: '{display_value}'")
-                            # --- END DEBUG PRINTS ---
-                    
-                            # Use themed metric cards - now inserting 'display_value' directly
+                            # NEW ROBUST HTML GENERATION FOR THE VALUE
+                            # Construct the inner <h2> tag separately
+                            value_html = f'<h2 style="margin: 0; font-size: 24px;">{display_value}</h2>'
+                            
+                            # Use themed metric cards - now inserting 'value_html' directly
+                            # This will prevent any re-interpretation of display_value as an f-string
                             st.markdown(f"""
                             <div class="metric-card">
                                 <h4 style="margin: 0; font-size: 14px; color: #888;">{col}</h4>
-                                <h2 style="margin: 0; font-size: 24px;">{display_value}</h2>
+                                {value_html}
                             </div>
                             """, unsafe_allow_html=True)
                     
