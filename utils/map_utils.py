@@ -31,8 +31,7 @@ class MapUtils:
                 'weight': 2,
                 'fillOpacity': 0.5,
             },
-            popup=folium.Popup('district', parse_html=True),
-            tooltip=folium.Tooltip(
+            tooltip=folium.features.GeoJsonTooltip(
                 fields=['district'],
                 aliases=['District:'],
                 labels=True,
@@ -118,13 +117,12 @@ class MapUtils:
         folium.GeoJson(
             self.geojson_data,
             style_function=style_function,
-            tooltip=folium.Tooltip(
+            tooltip=folium.features.GeoJsonTooltip(
                 fields=['district'],
                 aliases=['District:'],
                 labels=True,
                 sticky=False
-            ),
-            popup=folium.Popup('district', parse_html=True)
+            )
         ).add_to(m)
         
         # Add a custom legend
@@ -208,7 +206,7 @@ class MapUtils:
                         'weight': 3,
                         'fillOpacity': 0.7,
                     },
-                    tooltip=folium.Tooltip(
+                    tooltip=folium.features.GeoJsonTooltip(
                         fields=['district'],
                         aliases=['District:'],
                         labels=True,
