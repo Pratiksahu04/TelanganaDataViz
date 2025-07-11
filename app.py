@@ -48,7 +48,25 @@ def main():
     
     with col1:
         try:
+            # Add custom CSS for logo styling with white background
+            st.markdown("""
+            <style>
+            .logo-container {
+                background-color: white;
+                padding: 10px;
+                border-radius: 10px;
+                border: 2px solid #ddd;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                text-align: center;
+                margin: 10px 0;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            # Display logo with white background container
+            st.markdown('<div class="logo-container">', unsafe_allow_html=True)
             st.image("assets/telangana_logo.png", width=100)
+            st.markdown('</div>', unsafe_allow_html=True)
         except:
             st.markdown("🏛️")  # Fallback if logo not found
     
