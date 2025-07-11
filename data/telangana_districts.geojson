@@ -1140,7 +1140,7 @@
       "type": "Feature",
       "properties": {
         "dt_code": "733",
-        "district": "Komaram Bheem",
+        "district": "Kumuram Bheem",
         "st_code": "36",
         "year": "2016_c",
         "st_nm": "Telangana"
@@ -2695,7 +2695,7 @@
       "type": "Feature",
       "properties": {
         "dt_code": "537",
-        "district": "Ranga Reddy",
+        "district": "Rangareddy",
         "st_code": "36",
         "year": "2016_c",
         "st_nm": "Telangana"
@@ -3672,7 +3672,7 @@
       "type": "Feature",
       "properties": {
         "dt_code": "749",
-        "district": "Warangal Rural",
+        "district": "Warangal",
         "st_code": "36",
         "year": "2016_c",
         "st_nm": "Telangana"
@@ -3797,7 +3797,7 @@
       "type": "Feature",
       "properties": {
         "dt_code": "540",
-        "district": "Warangal Urban",
+        "district": "Hanumakonda",
         "st_code": "36",
         "year": "2016_c",
         "st_nm": "Telangana"
