@@ -118,6 +118,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Theme Switching Feature (July 11, 2025)
+- Added dark/light mode toggle in sidebar settings
+- Implemented custom CSS theming for better user experience
+- Enhanced logo visibility with theme-aware styling
+- Created themed metric cards and styling components
+- Added professional theme transition effects
+
 ### District Distance Calculator (July 11, 2025)
 - Added geographic distance calculation using Haversine formula
 - Implemented visual distance maps showing routes between districts

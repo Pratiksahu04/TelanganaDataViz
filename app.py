@@ -31,6 +31,8 @@ if 'distance_from' not in st.session_state:
     st.session_state.distance_from = None
 if 'distance_to' not in st.session_state:
     st.session_state.distance_to = None
+if 'dark_mode' not in st.session_state:
+    st.session_state.dark_mode = False
 
 # Load GeoJSON data
 @st.cache_data
@@ -42,28 +44,77 @@ def load_geojson():
         st.error("GeoJSON file not found. Please ensure the file is in the correct location.")
         return None
 
+def apply_theme():
+    """Apply theme-specific CSS styling"""
+    if st.session_state.dark_mode:
+        # Dark theme CSS
+        st.markdown("""
+        <style>
+        .stApp {
+            background-color: #0e1117;
+            color: #fafafa;
+        }
+        .logo-container {
+            background-color: #262730;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #555;
+            box-shadow: 0 2px 4px rgba(255,255,255,0.1);
+            text-align: center;
+            margin: 10px 0;
+        }
+        .main-header {
+            color: #fafafa;
+        }
+        .metric-card {
+            background-color: #262730;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #555;
+            margin: 5px 0;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+    else:
+        # Light theme CSS
+        st.markdown("""
+        <style>
+        .stApp {
+            background-color: #ffffff;
+            color: #262730;
+        }
+        .logo-container {
+            background-color: white;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            margin: 10px 0;
+        }
+        .main-header {
+            color: #262730;
+        }
+        .metric-card {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
 def main():
+    # Apply theme styling
+    apply_theme()
+    
     # Create header with logo
     col1, col2 = st.columns([1, 6])
     
     with col1:
         try:
-            # Add custom CSS for logo styling with white background
-            st.markdown("""
-            <style>
-            .logo-container {
-                background-color: white;
-                padding: 10px;
-                border-radius: 10px;
-                border: 2px solid #ddd;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                text-align: center;
-                margin: 10px 0;
-            }
-            </style>
-            """, unsafe_allow_html=True)
-            
-            # Display logo with white background container
+            # Display logo with themed background container
             st.markdown('<div class="logo-container">', unsafe_allow_html=True)
             st.image("assets/telangana_logo.png", width=100)
             st.markdown('</div>', unsafe_allow_html=True)
@@ -71,8 +122,10 @@ def main():
             st.markdown("🏛️")  # Fallback if logo not found
     
     with col2:
+        st.markdown('<div class="main-header">', unsafe_allow_html=True)
         st.markdown("# Telangana District Analysis Dashboard")
         st.markdown("**Interactive visualization and analysis of district-wise data in Telangana**")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # Add a separator line
     st.markdown("---")
@@ -89,6 +142,24 @@ def main():
     
     # Sidebar for controls
     with st.sidebar:
+        # Theme toggle at the top of sidebar
+        st.markdown("### ⚙️ Settings")
+        
+        # Theme toggle button
+        theme_col1, theme_col2 = st.columns([1, 1])
+        with theme_col1:
+            if st.button("🌙 Dark", key="dark_btn", use_container_width=True, 
+                        type="primary" if st.session_state.dark_mode else "secondary"):
+                st.session_state.dark_mode = True
+                st.rerun()
+        
+        with theme_col2:
+            if st.button("☀️ Light", key="light_btn", use_container_width=True,
+                        type="primary" if not st.session_state.dark_mode else "secondary"):
+                st.session_state.dark_mode = False
+                st.rerun()
+        
+        st.markdown("---")
         st.header("📊 Data Controls")
         
         # File upload
@@ -258,15 +329,18 @@ def main():
                     # Display district data in a nice format
                     district_info = district_data.iloc[0]
                     
-                    # Create metrics display
+                    # Create metrics display with themed styling
                     metrics_cols = st.columns(min(4, len(numeric_columns)))
                     for i, col in enumerate(numeric_columns[:4]):
                         with metrics_cols[i]:
                             value = district_info[col]
-                            st.metric(
-                                label=col,
-                                value=f"{value:,.2f}" if isinstance(value, float) else f"{value:,}"
-                            )
+                            # Use themed metric cards
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4 style="margin: 0; font-size: 14px; color: #888;">{col}</h4>
+                                <h2 style="margin: 0; font-size: 24px;">{value:,.2f if isinstance(value, float) else value:,}</h2>
+                            </div>
+                            """, unsafe_allow_html=True)
                     
                     # Show detailed data table
                     with st.expander("📋 Detailed District Data"):
