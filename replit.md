@@ -48,6 +48,8 @@ Preferred communication style: Simple, everyday language.
   - Choropleth maps for data visualization
   - Interactive tooltips and popups
   - Configurable color schemes
+  - Distance calculation between districts using Haversine formula
+  - Visual distance maps with route lines and markers
 
 ### Visualization Layer (`utils/chart_utils.py`)
 - **Problem**: Need complementary statistical visualizations
@@ -66,6 +68,8 @@ Preferred communication style: Simple, everyday language.
   - Interactive map display
   - Chart generation and display
   - Session state management
+  - District distance calculator with visual route display
+  - Integrated sidebar controls for quick distance calculations
 
 ## Data Flow
 
@@ -111,5 +115,14 @@ Preferred communication style: Simple, everyday language.
 - **Modular Design**: Separate utility classes for easy extension
 - **Configurable Components**: Color schemes, map parameters, and chart types are customizable
 - **Session Management**: Efficient state management for user interactions
+
+## Recent Changes
+
+### District Distance Calculator (July 11, 2025)
+- Added geographic distance calculation using Haversine formula
+- Implemented visual distance maps showing routes between districts
+- Added dual interface: sidebar quick calculator and main section detailed view
+- Enhanced map utilities with centroid calculation and distance visualization
+- Color-coded district highlighting (blue/red) with purple route lines
 
 The application follows a clean separation of concerns with the main app orchestrating specialized utility classes, making it easy to extend functionality or modify individual components without affecting the entire system.

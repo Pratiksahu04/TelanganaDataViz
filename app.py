@@ -25,6 +25,12 @@ if 'selected_district' not in st.session_state:
     st.session_state.selected_district = None
 if 'map_data' not in st.session_state:
     st.session_state.map_data = None
+if 'show_distance_map' not in st.session_state:
+    st.session_state.show_distance_map = False
+if 'distance_from' not in st.session_state:
+    st.session_state.distance_from = None
+if 'distance_to' not in st.session_state:
+    st.session_state.distance_to = None
 
 # Load GeoJSON data
 @st.cache_data
@@ -79,6 +85,40 @@ def main():
             except Exception as e:
                 st.error(f"❌ Error reading CSV file: {str(e)}")
                 st.session_state.uploaded_data = None
+        
+        # Distance Calculator in Sidebar
+        st.header("📏 Distance Calculator")
+        map_districts = [feature['properties']['district'] for feature in geojson_data['features']]
+        map_districts_sorted = sorted(map_districts)
+        
+        district_from_sidebar = st.selectbox(
+            "From District",
+            ["Select District"] + map_districts_sorted,
+            key="sidebar_dist_from"
+        )
+        
+        district_to_sidebar = st.selectbox(
+            "To District", 
+            ["Select District"] + map_districts_sorted,
+            key="sidebar_dist_to"
+        )
+        
+        if st.button("Calculate Distance", key="sidebar_calc_dist"):
+            if district_from_sidebar != "Select District" and district_to_sidebar != "Select District":
+                if district_from_sidebar != district_to_sidebar:
+                    map_utils = MapUtils(geojson_data)
+                    distance = map_utils.calculate_distance_between_districts(district_from_sidebar, district_to_sidebar)
+                    if distance:
+                        st.success(f"📏 {distance:.2f} km")
+                        st.session_state.show_distance_map = True
+                        st.session_state.distance_from = district_from_sidebar
+                        st.session_state.distance_to = district_to_sidebar
+                    else:
+                        st.error("Unable to calculate distance.")
+                else:
+                    st.warning("Select different districts.")
+            else:
+                st.warning("Select both districts.")
     
     # Main content area
     if st.session_state.uploaded_data is not None:
@@ -310,6 +350,18 @@ def main():
                             file_name="telangana_districts_statistics.csv",
                             mime="text/csv"
                         )
+            
+            # Show distance map if requested from sidebar
+            if st.session_state.show_distance_map and st.session_state.distance_from and st.session_state.distance_to:
+                st.header(f"🗺️ Distance Map: {st.session_state.distance_from} ↔ {st.session_state.distance_to}")
+                distance_map = map_utils.create_distance_map(st.session_state.distance_from, st.session_state.distance_to)
+                st_folium(
+                    distance_map,
+                    width=1200,
+                    height=500
+                )
+                if st.button("Hide Distance Map"):
+                    st.session_state.show_distance_map = False
         
         else:
             st.error("❌ Could not match district names with map data. Please check your district column.")
@@ -336,12 +388,57 @@ def main():
             height=600
         )
         
+        # Distance Calculator
+        st.header("📏 District Distance Calculator")
+        st.info("Calculate the distance between any two districts in Telangana")
+        
+        map_districts = [feature['properties']['district'] for feature in geojson_data['features']]
+        map_districts_sorted = sorted(map_districts)
+        
+        col1, col2, col3 = st.columns([1, 1, 1])
+        
+        with col1:
+            district_from = st.selectbox(
+                "From District",
+                ["Select District"] + map_districts_sorted,
+                key="dist_from"
+            )
+        
+        with col2:
+            district_to = st.selectbox(
+                "To District", 
+                ["Select District"] + map_districts_sorted,
+                key="dist_to"
+            )
+        
+        with col3:
+            if st.button("🗺️ Calculate Distance", type="primary"):
+                if district_from != "Select District" and district_to != "Select District":
+                    if district_from != district_to:
+                        distance = map_utils.calculate_distance_between_districts(district_from, district_to)
+                        if distance:
+                            st.success(f"📏 Distance: **{distance:.2f} km**")
+                            
+                            # Show distance map
+                            distance_map = map_utils.create_distance_map(district_from, district_to)
+                            st.subheader(f"🗺️ Route from {district_from} to {district_to}")
+                            st_folium(
+                                distance_map,
+                                width=1200,
+                                height=500
+                            )
+                        else:
+                            st.error("Unable to calculate distance. Please check district names.")
+                    else:
+                        st.warning("Please select two different districts.")
+                else:
+                    st.warning("Please select both districts.")
+        
         # Show available districts
         st.header("📍 Available Districts")
-        map_districts = [feature['properties']['district'] for feature in geojson_data['features']]
         
         cols = st.columns(3)
-        for i, district in enumerate(sorted(map_districts)):
+        for i, district in enumerate(map_districts_sorted):
             with cols[i % 3]:
                 st.write(f"• {district}")
 

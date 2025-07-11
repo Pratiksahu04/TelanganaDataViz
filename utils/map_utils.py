@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from shapely.geometry import shape, Point
 import streamlit as st
+import math
 
 class MapUtils:
     def __init__(self, geojson_data):
@@ -223,5 +224,151 @@ class MapUtils:
                         'fillOpacity': 0.3,
                     }
                 ).add_to(m)
+        
+        return m
+    
+    def calculate_distance_between_districts(self, district1, district2):
+        """
+        Calculate the distance between two districts in kilometers
+        """
+        coords1 = self.get_district_centroid(district1)
+        coords2 = self.get_district_centroid(district2)
+        
+        if coords1 is None or coords2 is None:
+            return None
+        
+        return self.haversine_distance(coords1[0], coords1[1], coords2[0], coords2[1])
+    
+    def get_district_centroid(self, district_name):
+        """
+        Get the centroid coordinates (lat, lng) for a district
+        """
+        for feature in self.geojson_data['features']:
+            if feature['properties']['district'] == district_name:
+                polygon = shape(feature['geometry'])
+                centroid = polygon.centroid
+                return (centroid.y, centroid.x)  # (lat, lng)
+        return None
+    
+    def haversine_distance(self, lat1, lon1, lat2, lon2):
+        """
+        Calculate the great circle distance between two points on the earth in kilometers
+        """
+        # Convert decimal degrees to radians
+        lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+        
+        # Haversine formula
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+        c = 2 * math.asin(math.sqrt(a))
+        
+        # Radius of earth in kilometers
+        r = 6371
+        
+        return c * r
+    
+    def create_distance_map(self, district1, district2):
+        """
+        Create a map showing the distance between two districts
+        """
+        coords1 = self.get_district_centroid(district1)
+        coords2 = self.get_district_centroid(district2)
+        
+        if coords1 is None or coords2 is None:
+            return self.create_basic_map()
+        
+        # Calculate center point between the two districts
+        center_lat = (coords1[0] + coords2[0]) / 2
+        center_lng = (coords1[1] + coords2[1]) / 2
+        
+        # Calculate appropriate zoom level based on distance
+        distance = self.haversine_distance(coords1[0], coords1[1], coords2[0], coords2[1])
+        if distance < 50:
+            zoom = 9
+        elif distance < 100:
+            zoom = 8
+        elif distance < 200:
+            zoom = 7
+        else:
+            zoom = 6
+        
+        m = folium.Map(
+            location=[center_lat, center_lng],
+            zoom_start=zoom,
+            tiles='OpenStreetMap'
+        )
+        
+        # Add all districts in light gray
+        for feature in self.geojson_data['features']:
+            district_name = feature['properties']['district']
+            
+            if district_name == district1:
+                # Highlight first district in blue
+                folium.GeoJson(
+                    feature,
+                    style_function=lambda x: {
+                        'fillColor': 'blue',
+                        'color': 'darkblue',
+                        'weight': 3,
+                        'fillOpacity': 0.7,
+                    },
+                    tooltip=folium.features.GeoJsonTooltip(
+                        fields=['district'],
+                        aliases=['District:'],
+                        labels=True,
+                        sticky=False
+                    )
+                ).add_to(m)
+            elif district_name == district2:
+                # Highlight second district in red
+                folium.GeoJson(
+                    feature,
+                    style_function=lambda x: {
+                        'fillColor': 'red',
+                        'color': 'darkred',
+                        'weight': 3,
+                        'fillOpacity': 0.7,
+                    },
+                    tooltip=folium.features.GeoJsonTooltip(
+                        fields=['district'],
+                        aliases=['District:'],
+                        labels=True,
+                        sticky=False
+                    )
+                ).add_to(m)
+            else:
+                # Other districts in light gray
+                folium.GeoJson(
+                    feature,
+                    style_function=lambda x: {
+                        'fillColor': 'lightgray',
+                        'color': 'gray',
+                        'weight': 1,
+                        'fillOpacity': 0.3,
+                    }
+                ).add_to(m)
+        
+        # Add markers for district centroids
+        folium.Marker(
+            coords1,
+            popup=f"{district1}",
+            icon=folium.Icon(color='blue', icon='info-sign')
+        ).add_to(m)
+        
+        folium.Marker(
+            coords2,
+            popup=f"{district2}",
+            icon=folium.Icon(color='red', icon='info-sign')
+        ).add_to(m)
+        
+        # Add a line between the districts
+        folium.PolyLine(
+            locations=[coords1, coords2],
+            weight=3,
+            color='purple',
+            opacity=0.8,
+            popup=f"Distance: {distance:.2f} km"
+        ).add_to(m)
         
         return m
