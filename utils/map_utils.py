@@ -20,7 +20,7 @@ class MapUtils:
         m = folium.Map(
             location=[self.center_lat, self.center_lng],
             zoom_start=self.zoom_start,
-            tiles='OpenStreetMap'
+            tiles='CartoDB positron'
         )
         
         # Add district boundaries
@@ -50,7 +50,7 @@ class MapUtils:
         m = folium.Map(
             location=[self.center_lat, self.center_lng],
             zoom_start=self.zoom_start,
-            tiles='OpenStreetMap'
+            tiles='CartoDB positron'
         )
         
         # Prepare data for choropleth
@@ -193,7 +193,7 @@ class MapUtils:
         m = folium.Map(
             location=[center_lat, center_lng],
             zoom_start=9,
-            tiles='OpenStreetMap'
+            tiles='CartoDB positron'
         )
         
         # Add the specific district with highlighting
@@ -296,7 +296,7 @@ class MapUtils:
         m = folium.Map(
             location=[center_lat, center_lng],
             zoom_start=zoom,
-            tiles='OpenStreetMap'
+            tiles='CartoDB positron'
         )
         
         # Add all districts in light gray
