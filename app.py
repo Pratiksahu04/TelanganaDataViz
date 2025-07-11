@@ -334,27 +334,39 @@ def main():
                     for i, col in enumerate(numeric_columns[:4]):
                         with metrics_cols[i]:
                             value = district_info[col]
-                            
+                    
+                            # --- START DEBUG PRINTS ---
+                            st.write(f"DEBUG: Processing column '{col}'")
+                            st.write(f"DEBUG: Original value type: {type(value)}, value: {value}")
+                            st.write(f"DEBUG: pd.isna(value): {pd.isna(value)}")
+                            st.write(f"DEBUG: value is None: {value is None}")
+                            st.write(f"DEBUG: isinstance(value, float): {isinstance(value, float)}")
+                            st.write(f"DEBUG: isinstance(value, int): {isinstance(value, int)}")
+                            # --- END DEBUG PRINTS ---
+                    
                             display_value = "" # Initialize a variable for the final display value
                     
                             if pd.isna(value) or value is None:
-                                display_value = "N/A"
+                                display_value = "N/A" # <-- This is line 341
                             elif isinstance(value, float):
-                                # Try to format floats with 2 decimal places and commas
                                 try:
                                     display_value = f"{value:,.2f}"
-                                except (ValueError, TypeError):
-                                    display_value = str(value) # Fallback to simple string conversion
+                                except (ValueError, TypeError) as e:
+                                    st.error(f"DEBUG: Formatting float failed for {value}: {e}") # Debugging the exception
+                                    display_value = str(value)
                             elif isinstance(value, int):
-                                # Try to format integers with commas
                                 try:
                                     display_value = f"{value:,}"
-                                except (ValueError, TypeError):
-                                    display_value = str(value) # Fallback to simple string conversion
+                                except (ValueError, TypeError) as e:
+                                    st.error(f"DEBUG: Formatting int failed for {value}: {e}") # Debugging the exception
+                                    display_value = str(value)
                             else:
-                                # For any other type, just convert to string
                                 display_value = str(value)
-                                
+                    
+                            # --- START DEBUG PRINTS ---
+                            st.write(f"DEBUG: Final display_value type: {type(display_value)}, value: '{display_value}'")
+                            # --- END DEBUG PRINTS ---
+                    
                             # Use themed metric cards - now inserting 'display_value' directly
                             st.markdown(f"""
                             <div class="metric-card">
