@@ -37,7 +37,7 @@ class DataProcessor:
         
         return name.title()
     
-    def match_districts(self, df, district_col, geojson_data):
+    def match_districts(self, df, district_col, geojson_data, verbose=False): # verbose=False is key here
         """
         Match district names from CSV with GeoJSON data
         """
@@ -81,7 +81,8 @@ class DataProcessor:
                 if best_match:
                     idx = map_districts_normalized.index(best_match)
                     district_mapping[csv_district] = map_districts[idx]
-                    st.info(f"🔄 Fuzzy matched '{csv_district}' → '{map_districts[idx]}' (score: {best_score}%)")
+                    if verbose: # Conditional display based on verbose flag
+                        st.info(f"🔄 Fuzzy matched '{csv_district}' → '{map_districts[idx]}' (score: {best_score}%)")
                 else:
                     unmatched_districts.append(csv_district)
         
