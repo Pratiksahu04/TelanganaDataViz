@@ -261,7 +261,7 @@ def main():
         
         with col3:
             # Color scheme selection
-            color_schemes = ['viridis', 'plasma', 'inferno', 'magma', 'cividis', 'Blues', 'Reds', 'Greens']
+            color_schemes = ['viridis','Blues', 'Reds', 'Greens']
             color_scheme = st.selectbox(
                 "Color Scheme",
                 color_schemes,
@@ -331,7 +331,7 @@ def main():
                     
                     # Create metrics display with themed styling
                     metrics_cols = st.columns(min(4, len(numeric_columns)))
-                    for i, col in enumerate(numeric_columns[:4]):
+                    for i, col in enumerate(numeric_columns[:6]):
                         with metrics_cols[i]:
                             value = district_info[col]
                             
