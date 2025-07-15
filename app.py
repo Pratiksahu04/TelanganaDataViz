@@ -261,7 +261,7 @@ def main():
         
         with col3:
             # Color scheme selection
-            color_schemes = ['viridis','Blues', 'Reds', 'Greens']
+            color_schemes = ['viridis', 'plasma', 'inferno', 'magma', 'cividis', 'Blues', 'Reds', 'Greens']
             color_scheme = st.selectbox(
                 "Color Scheme",
                 color_schemes,
@@ -330,46 +330,51 @@ def main():
                     district_info = district_data.iloc[0]
                     
                     # Create metrics display with themed styling
-                    metrics_cols = st.columns(min(4, len(numeric_columns)))
-                    for i, col in enumerate(numeric_columns[:4]):
-                        with metrics_cols[i]:
-                            value = district_info[col]
-                            
-                            display_value = "" # Initialize a variable for the final display value
-                    
-                            # First, ensure 'value' is a scalar if it's accidentally a Series/array
-                            if isinstance(value, (pd.Series, np.ndarray)) and len(value) == 1:
-                                value = value.iloc[0] if isinstance(value, pd.Series) else value.item() # Extract scalar
-                    
-                            if pd.isna(value) or value is None:
-                                display_value = "N/A"
-                            elif isinstance(value, float):
-                                try:
-                                    display_value = f"{value:,.2f}"
-                                except (ValueError, TypeError):
-                                    # If formatting fails, fallback to simple string conversion.
-                                    # In production, you might want to log this error internally instead of displaying.
-                                    display_value = str(value)
-                            elif isinstance(value, int):
-                                try:
-                                    display_value = f"{value:,}"
-                                except (ValueError, TypeError):
-                                    # If formatting fails, fallback to simple string conversion.
-                                    display_value = str(value)
-                            else:
-                                display_value = str(value)
+                    # Use a slice of numeric_columns to ensure we don't try to create more columns than we have metrics
+                    display_numeric_columns = numeric_columns[:4] # Limit to first 4 numeric columns for display
+                    if display_numeric_columns: # Only create columns if there are metrics to display
+                        metrics_cols = st.columns(len(display_numeric_columns))
+                        for i, col in enumerate(display_numeric_columns): # Iterate over the sliced list
+                            with metrics_cols[i]:
+                                value = district_info[col]
                                 
-                            # Construct the inner <h2> tag separately
-                            value_html = f'<h2 style="margin: 0; font-size: 24px;">{display_value}</h2>'
-                            
-                            # Use themed metric cards
-                            st.markdown(f"""
-                            <div class="metric-card">
-                                <h4 style="margin: 0; font-size: 14px; color: #888;">{col}</h4>
-                                {value_html}
-                            </div>
-                            """, unsafe_allow_html=True)
-                    
+                                display_value = "" # Initialize a variable for the final display value
+                        
+                                # First, ensure 'value' is a scalar if it's accidentally a Series/array
+                                if isinstance(value, (pd.Series, np.ndarray)) and len(value) == 1:
+                                    value = value.iloc[0] if isinstance(value, pd.Series) else value.item() # Extract scalar
+                        
+                                if pd.isna(value) or value is None:
+                                    display_value = "N/A"
+                                elif isinstance(value, float):
+                                    try:
+                                        display_value = f"{value:,.2f}"
+                                    except (ValueError, TypeError):
+                                        # If formatting fails, fallback to simple string conversion.
+                                        # In production, you might want to log this error internally instead of displaying.
+                                        display_value = str(value)
+                                elif isinstance(value, int):
+                                    try:
+                                        display_value = f"{value:,}"
+                                    except (ValueError, TypeError):
+                                        # If formatting fails, fallback to simple string conversion.
+                                        display_value = str(value)
+                                else:
+                                    display_value = str(value)
+                                    
+                                # Construct the inner <h2> tag separately
+                                value_html = f'<h2 style="margin: 0; font-size: 24px;">{display_value}</h2>'
+                                
+                                # Use themed metric cards
+                                st.markdown(f"""
+                                <div class="metric-card">
+                                    <h4 style="margin: 0; font-size: 14px; color: #888;">{col}</h4>
+                                    {value_html}
+                                </div>
+                                """, unsafe_allow_html=True)
+                    else:
+                        st.info("No numeric data available to display metrics for this district.")
+
                     # Show detailed data table
                     with st.expander("📋 Detailed District Data"):
                         st.dataframe(district_data)
@@ -387,11 +392,15 @@ def main():
             
             with col2:
                 if chart_type in ["Bar Chart", "Line Chart", "Scatter Plot", "Box Plot"]:
-                    y_axis_col = st.selectbox(
-                        "Select Y-axis Column",
-                        numeric_columns,
-                        help="Numeric column for Y-axis"
-                    )
+                    if numeric_columns: # Check if numeric_columns is not empty
+                        y_axis_col = st.selectbox(
+                            "Select Y-axis Column",
+                            numeric_columns,
+                            help="Numeric column for Y-axis"
+                        )
+                    else:
+                        y_axis_col = None
+                        st.warning("No numeric columns available for Y-axis.")
                 elif chart_type == "Pie Chart":
                     categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
                     if categorical_cols:
@@ -418,13 +427,19 @@ def main():
                 st.plotly_chart(fig, use_container_width=True)
             
             elif chart_type == "Scatter Plot" and y_axis_col:
+                # Ensure there are at least two numeric columns before asking for x-axis
                 if len(numeric_columns) > 1:
-                    x_axis_col = st.selectbox(
-                        "Select X-axis Column",
-                        [col for col in numeric_columns if col != y_axis_col]
-                    )
-                    fig = chart_utils.create_scatter_plot(matched_data, x_axis_col, y_axis_col, district_col)
-                    st.plotly_chart(fig, use_container_width=True)
+                    # Filter out y_axis_col from x_axis_col options
+                    available_x_cols = [col for col in numeric_columns if col != y_axis_col]
+                    if available_x_cols:
+                        x_axis_col = st.selectbox(
+                            "Select X-axis Column",
+                            available_x_cols
+                        )
+                        fig = chart_utils.create_scatter_plot(matched_data, x_axis_col, y_axis_col, district_col)
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.warning("No other numeric columns available for X-axis.")
                 else:
                     st.warning("Need at least 2 numeric columns for scatter plot")
             
@@ -442,6 +457,8 @@ def main():
                 if numeric_columns:
                     stats_df = matched_data[numeric_columns].describe()
                     st.dataframe(stats_df)
+                else:
+                    st.info("No numeric columns to display descriptive statistics.")
             
             with col2:
                 st.subheader("🔍 Data Overview")
@@ -483,6 +500,8 @@ def main():
                             file_name="telangana_districts_statistics.csv",
                             mime="text/csv"
                         )
+                    else:
+                        st.warning("No numeric columns to download summary statistics for.")
             
             # Show distance map if requested from sidebar
             if st.session_state.show_distance_map and st.session_state.distance_from and st.session_state.distance_to:
@@ -577,4 +596,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
