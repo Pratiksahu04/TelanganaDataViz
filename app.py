@@ -330,7 +330,7 @@ def main():
                     district_info = district_data.iloc[0]
                     
                     # Create metrics display with themed styling
-                    metrics_cols = st.columns(min(4, len(numeric_columns)))
+                    metrics_cols = st.columns(min(6, len(numeric_columns)))
                     for i, col in enumerate(numeric_columns[:6]):
                         with metrics_cols[i]:
                             value = district_info[col]
