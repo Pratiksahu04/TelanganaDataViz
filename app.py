@@ -32,7 +32,7 @@ if 'distance_from' not in st.session_state:
 if 'distance_to' not in st.session_state:
     st.session_state.distance_to = None
 if 'dark_mode' not in st.session_state:
-    st.session_state.dark_mode = False
+    st.session_state.dark_mode = True
 # Add new session state for selected_district_col if not already present
 if 'selected_district_col' not in st.session_state:
     st.session_state.selected_district_col = None
