@@ -587,7 +587,7 @@ def main():
                     st.write("Generate custom charts to analyze specific data trends or comparisons.")
 
                     numeric_columns_for_charts = df.select_dtypes(include=[np.number]).columns.tolist() # Get all numeric columns
-                    categorical_columns_for_charts = df.select_dtypes(include=['object']).columns.tolist()
+                    categorical_columns_for_charts = df.select_dtypes(include=[np.number]).columns.tolist()
 
                     chart_col1, chart_col2 = st.columns(2)
                     
@@ -684,6 +684,12 @@ def main():
                     if chart_type == "Bar Chart" and y_axis_col:
                         fig = chart_utils.create_bar_chart(matched_data, district_col, y_axis_col, title=f'{y_axis_col} per District')
                         st.plotly_chart(fig, use_container_width=True)
+
+                    elif pie_value_col == 'Count of Records':
+                        pie_df = matched_data[pie_col].value_counts().reset_index()
+                        pie_df.columns = [pie_col, 'Count']
+                        fig = chart_utils.create_pie_chart(pie_df, pie_col, 'Count', title=f'Distribution by {pie_col}')
+
                     
                     elif chart_type == "Line Chart" and y_axis_col:
                         fig = chart_utils.create_line_chart(matched_data, district_col, y_axis_col, title=f'{y_axis_col} Trend Across Districts')
