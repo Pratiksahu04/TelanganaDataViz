@@ -691,10 +691,13 @@ def main():
                     
                     elif chart_type == "Pie Chart" and pie_col and pie_value_col:
                         if pie_value_col == 'Count of Records':
-                            # Create a temporary DataFrame for counts for the pie chart
-                            pie_df = matched_data[pie_col].value_counts().reset_index()
-                            pie_df.columns = [pie_col, 'Count']
-                            fig = chart_utils.create_pie_chart(pie_df, pie_col, 'Count', title=f'Distribution by {pie_col}')
+                            if isinstance(pie_col, str) and pie_col in matched_data.columns:
+                                pie_df = matched_data[pie_col].value_counts().reset_index()
+                                pie_df.columns = [pie_col, 'Count']
+                                fig = chart_utils.create_pie_chart(pie_df, pie_col, 'Count', title=f'Distribution by {pie_col}')
+                            else:
+                                st.warning("Invalid pie column selected. Please choose a valid categorical column.")
+
                         else:
                             # For other numeric values, sum/average by category if needed, or use directly if single value
                             # Assuming you want to show the distribution of a numeric column across categories for pie.
