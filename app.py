@@ -689,16 +689,17 @@ def main():
                         fig = chart_utils.create_line_chart(matched_data, district_col, y_axis_col, title=f'{y_axis_col} Trend Across Districts')
                         st.plotly_chart(fig, use_container_width=True)
                     
-                    elif chart_type == "Pie Chart" and pie_col and pie_value_col:
-                        if pie_value_col == 'Count of Records':
-                            if isinstance(pie_col, str) and pie_col in matched_data.columns:
-                                pie_df = matched_data[pie_col].value_counts().reset_index()
-                                pie_df.columns = [pie_col, 'Count']
-                                fig = chart_utils.create_pie_chart(pie_df, pie_col, 'Count', title=f'Distribution by {pie_col}')
-                            else:
-                                st.warning("Invalid pie column selected. Please choose a valid categorical column.")
-
+                    elif pie_value_col == 'Count of Records':
+                        if isinstance(pie_col, str) and pie_col in matched_data.columns:
+                            pie_df = matched_data[pie_col].value_counts().reset_index()
+                            pie_df.columns = [pie_col, 'Count']
+                            st.write("Generating pie chart with:")
+                            st.write("pie_df columns:", pie_df.columns.tolist())
+                            st.write("pie_col:", pie_col)
+                            fig = chart_utils.create_pie_chart(pie_df, pie_col, 'Count', title=f'Distribution by {pie_col}')
+                            st.plotly_chart(fig, use_container_width=True)
                         else:
+                            st.warning("Please select a valid categorical column for the pie chart.")
                             # For other numeric values, sum/average by category if needed, or use directly if single value
                             # Assuming you want to show the distribution of a numeric column across categories for pie.
                             # If `matched_data` needs aggregation first, do it here.
