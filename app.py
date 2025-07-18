@@ -689,28 +689,6 @@ def main():
                         fig = chart_utils.create_line_chart(matched_data, district_col, y_axis_col, title=f'{y_axis_col} Trend Across Districts')
                         st.plotly_chart(fig, use_container_width=True)
                     
-                    elif pie_value_col == 'Count of Records':
-                        if isinstance(pie_col, str) and pie_col in matched_data.columns:
-                            pie_df = matched_data[pie_col].value_counts().reset_index()
-                            pie_df.columns = [pie_col, 'Count']
-                            pie_df.columns = [col.strip() for col in pie_df.columns]
-                            pie_col = pie_col.strip()
-                            st.write("Final pie_df columns:", pie_df.columns.tolist())
-                            st.write("pie_col used for chart:", pie_col)
-                            fig = chart_utils.create_pie_chart(pie_df, pie_col, 'Count', title=f'Distribution by {pie_col}')
-                            st.plotly_chart(fig, use_container_width=True)
-                        else:
-                            st.warning("Please select a valid categorical column for the pie chart.")
-
-                            # For other numeric values, sum/average by category if needed, or use directly if single value
-                            # Assuming you want to show the distribution of a numeric column across categories for pie.
-                            # If `matched_data` needs aggregation first, do it here.
-                            # For simplicity, if pie_value_col is a numeric column, we can use it directly if it's already aggregated (e.g. per district).
-                            # If not, you might want to sum/mean it per category. Let's assume for now it's per category.
-                            fig = chart_utils.create_pie_chart(matched_data, pie_col, pie_value_col, title=f'Distribution of {pie_value_col} by {pie_col}')
-
-                        st.plotly_chart(fig, use_container_width=True)
-                    
                     elif chart_type == "Scatter Plot" and x_axis_col and y_axis_col:
                         fig = chart_utils.create_scatter_plot(matched_data, x_axis_col, y_axis_col, color_col=district_col, title=f'{y_axis_col} vs {x_axis_col} by District')
                         st.plotly_chart(fig, use_container_width=True)
