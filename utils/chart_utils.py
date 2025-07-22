@@ -62,19 +62,17 @@ class ChartUtils:
         
         return fig
     
-    def create_pie_chart(self, data, category_col, title=None):
+    def create_pie_chart(self, data, names_col, values_col, title=None): # Added values_col
         """
         Create a pie chart
         """
         if title is None:
-            title = f"Distribution by {category_col}"
-        
-        # Count values in the category column
-        value_counts = data[category_col].value_counts()
+            title = f"Distribution of {values_col} by {names_col}" # More descriptive title
         
         fig = px.pie(
-            values=value_counts.values,
-            names=value_counts.index,
+            data, # Pass the DataFrame directly
+            names=names_col,
+            values=values_col,
             title=title,
             color_discrete_sequence=self.color_palette
         )
@@ -86,7 +84,7 @@ class ChartUtils:
         
         return fig
     
-    def create_scatter_plot(self, data, x_col, y_col, hover_col=None, title=None):
+    def create_scatter_plot(self, data, x_col, y_col, hover_col=None, color_col=None, title=None): # Added color_col
         """
         Create a scatter plot
         """
@@ -97,22 +95,28 @@ class ChartUtils:
         if hover_col and hover_col in data.columns:
             hover_data.append(hover_col)
         
+        # Determine the column to use for coloring
+        plot_color_col = color_col if color_col and color_col in data.columns else None
+        
         fig = px.scatter(
             data,
             x=x_col,
             y=y_col,
             title=title,
             hover_data=hover_data,
-            color=y_col,
-            color_continuous_scale='viridis',
+            color=plot_color_col,  # Use plot_color_col for coloring
+            color_continuous_scale='viridis' if plot_color_col and pd.api.types.is_numeric_dtype(data[plot_color_col]) else None, # Apply continuous scale only if color_col is numeric
+            color_discrete_sequence=self.color_palette if plot_color_col and not pd.api.types.is_numeric_dtype(data[plot_color_col]) else None, # Apply discrete scale if categorical
             size_max=15
         )
         
         if hover_col and hover_col in data.columns:
             fig.update_traces(
+                # Ensure customdata indices are correct based on hover_data
+                # If hover_data is [x_col, y_col, hover_col], then hover_col is index 2
                 hovertemplate=f'<b>{hover_col}: %{{customdata[2]}}</b><br>' +
-                             f'{x_col}: %{{x}}<br>' +
-                             f'{y_col}: %{{y}}<extra></extra>'
+                              f'{x_col}: %{{x}}<br>' +
+                              f'{y_col}: %{{y}}<extra></extra>'
             )
         
         fig.update_layout(
@@ -122,27 +126,34 @@ class ChartUtils:
         )
         
         return fig
+
     
-    def create_box_plot(self, data, y_col, title=None):
+    def create_box_plot(self, data, y_col, x_col=None, title=None): # Added x_col parameter
         """
         Create a box plot
         """
         if title is None:
-            title = f"Distribution of {y_col}"
+            if x_col:
+                title = f"Distribution of {y_col} by {x_col}"
+            else:
+                title = f"Distribution of {y_col}"
         
         fig = px.box(
             data,
             y=y_col,
+            x=x_col,  # Use the x_col parameter here
             title=title,
             color_discrete_sequence=['lightblue']
         )
         
         fig.update_layout(
+            xaxis_title=x_col if x_col else "", # Set x-axis title if x_col is provided
             yaxis_title=y_col,
             height=500
         )
         
         return fig
+
     
     def create_histogram(self, data, col, bins=30, title=None):
         """
