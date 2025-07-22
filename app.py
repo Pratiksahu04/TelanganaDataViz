@@ -587,7 +587,7 @@ def main():
                     st.write("Generate custom charts to analyze specific data trends or comparisons.")
 
                     numeric_columns_for_charts = df.select_dtypes(include=[np.number]).columns.tolist() # Get all numeric columns
-                    categorical_columns_for_charts = df.select_dtypes(include=[np.number]).columns.tolist()
+                    categorical_columns_for_charts = df.select_dtypes(include=['object']).columns.tolist()
 
                     chart_col1, chart_col2 = st.columns(2)
                     
@@ -597,10 +597,11 @@ def main():
                             ["Bar Chart", "Line Chart", "Pie Chart", "Scatter Plot", "Box Plot", "Multi-Metric Line Chart", "Ranking Chart"], # Added new types
                             key="chart_type_select"
                         )
-                    
                     # Dynamic column selection based on chart type
                     with chart_col2:
                         y_axis_col, x_axis_col, pie_col, multi_metric_cols, ranking_metric_col = None, None, None, None, None
+                        # Initialize pie_value_col here
+                        pie_value_col = None 
 
                         if chart_type in ["Bar Chart", "Line Chart", "Box Plot"]:
                             if numeric_columns_for_charts:
@@ -682,40 +683,44 @@ def main():
                     
                     # Generate charts
                     if chart_type == "Bar Chart" and y_axis_col:
-                        fig = chart_utils.create_bar_chart(matched_data, district_col, y_axis_col, title=f'{y_axis_col} per District')
+                        fig = chart_utils.create_bar_chart(matched_data, st.session_state.selected_district_col, y_axis_col, title=f'{y_axis_col} per District')
                         st.plotly_chart(fig, use_container_width=True)
 
-                    elif pie_value_col == 'Count of Records':
-                        pie_df = matched_data[pie_col].value_counts().reset_index()
-                        pie_df.columns = [pie_col, 'Count']
-                        fig = chart_utils.create_pie_chart(pie_df, pie_col, 'Count', title=f'Distribution by {pie_col}')
-
+                    elif chart_type == "Pie Chart" and pie_col and pie_value_col: # Added pie_value_col check here
+                        if pie_value_col == 'Count of Records':
+                            pie_df = matched_data[pie_col].value_counts().reset_index(name = 'Count')
+                            pie_df.columns = [pie_col, 'Count']
+                            fig = chart_utils.create_pie_chart(pie_df, pie_col, 'Count', title=f'Distribution by {pie_col}')
+                        else:
+                            fig = chart_utils.create_pie_chart(matched_data, pie_col, pie_value_col, title=f'Distribution of {pie_value_col} by {pie_col}')
+                        st.plotly_chart(fig, use_container_width=True)
                     
                     elif chart_type == "Line Chart" and y_axis_col:
-                        fig = chart_utils.create_line_chart(matched_data, district_col, y_axis_col, title=f'{y_axis_col} Trend Across Districts')
+                        fig = chart_utils.create_line_chart(matched_data, st.session_state.selected_district_col, y_axis_col, title=f'{y_axis_col} Trend Across Districts')
                         st.plotly_chart(fig, use_container_width=True)
                     
                     elif chart_type == "Scatter Plot" and x_axis_col and y_axis_col:
-                        fig = chart_utils.create_scatter_plot(matched_data, x_axis_col, y_axis_col, color_col=district_col, title=f'{y_axis_col} vs {x_axis_col} by District')
+                        fig = chart_utils.create_scatter_plot(matched_data, x_axis_col, y_axis_col, color_col=st.session_state.selected_district_col, title=f'{y_axis_col} vs {x_axis_col} by District')
                         st.plotly_chart(fig, use_container_width=True)
                     
                     elif chart_type == "Box Plot" and y_axis_col:
-                        fig = chart_utils.create_box_plot(matched_data, y_axis_col, x_col=district_col, title=f'Distribution of {y_axis_col} Across Districts') # Changed x_col to district_col for box plot
+                        fig = chart_utils.create_box_plot(matched_data, y_axis_col, x_col=st.session_state.selected_district_col, title=f'Distribution of {y_axis_col} Across Districts')
                         st.plotly_chart(fig, use_container_width=True)
                     
                     elif chart_type == "Multi-Metric Line Chart" and multi_metric_cols:
                         if len(multi_metric_cols) > 0:
-                            fig = chart_utils.create_multi_metric_line_chart(matched_data, district_col, multi_metric_cols)
+                            fig = chart_utils.create_multi_metric_chart(matched_data, st.session_state.selected_district_col, multi_metric_cols)
                             st.plotly_chart(fig, use_container_width=True)
                         else:
                             st.info("Please select at least one metric for the Multi-Metric Line Chart.")
                     
                     elif chart_type == "Ranking Chart" and ranking_metric_col:
-                        fig = chart_utils.create_ranking_chart(matched_data, district_col, ranking_metric_col, top_n, ranking_ascending)
+                        fig = chart_utils.create_ranking_chart(matched_data, st.session_state.selected_district_col, ranking_metric_col, top_n, ranking_ascending)
                         st.plotly_chart(fig, use_container_width=True)
                     
                     else:
                         st.info("Please select a chart type and appropriate columns to generate the visualization.")
+                    
 
             # --- Data Summary Statistics ---
             st.divider()
